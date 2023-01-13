@@ -1,0 +1,5 @@
+./test/test_GasMixer.c:17:test_GasMixer_UpdateO2Parameters_CorrectFlow:PASS
+
+-----------------------
+1 Tests 0 Failures 0 Ignored 
+OK

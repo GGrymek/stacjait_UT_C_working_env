@@ -1,0 +1,55 @@
+CC ?= gcc
+BUILD_DIR = ./build
+SRC_DIR = ./src
+TEST_DIR = ./test
+TEST_CFLAGS ?= -DUNIT_TESTS
+CMOCK_DIR ?= C:/Users/grzeg/Desktop/Software_tools/cmock
+UNITY_DIR ?= C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity
+TEST_BUILD_DIR ?= ${BUILD_DIR}/test
+TEST_MAKEFILE = ${TEST_BUILD_DIR}/MakefileTestSupport
+OBJ ?= ${BUILD_DIR}/obj
+OBJ_DIR = ${OBJ}
+
+./build/test/obj/unity.o: C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src/unity.c
+	${CC} -o $@ -c $< -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src
+
+./build/test/obj/cmock.o: C:/Users/grzeg/Desktop/Software_tools/cmock/src/cmock.c
+	${CC} -o $@ -c $< -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src -I C:/Users/grzeg/Desktop/Software_tools/cmock/src
+
+./build/test/obj/AdcHardware.o: ./src/AdcHardware.c
+	${CC} -o $@ -c $< ${TEST_CFLAGS} -I ${SRC_DIR} ${INCLUDE_PATH}
+
+./build/test/runners/runner_test_AdcHardware.c: ./test/test_AdcHardware.c
+	@UNITY_DIR=${UNITY_DIR} ruby ${CMOCK_DIR}/scripts/create_runner.rb ./test/test_AdcHardware.c ./build/test/runners/runner_test_AdcHardware.c
+
+./build/test/obj/runner_test_AdcHardware.o: ./build/test/runners/runner_test_AdcHardware.c
+	${CC} -o $@ -c $< ${TEST_CFLAGS} -I ./src -I ./build/test/mocks -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src -I C:/Users/grzeg/Desktop/Software_tools/cmock/src ${INCLUDE_PATH}
+
+./build/test/obj/test_AdcHardware.o: ./test/test_AdcHardware.c ./build/test/obj/AdcHardware.o ./build/test/mocks/mock_AdcHardwareConfigurator.o ./build/test/mocks/mock_AdcTemperatureSensor.o
+	${CC} -o $@ -c $< ${TEST_CFLAGS} -I ./src -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src -I C:/Users/grzeg/Desktop/Software_tools/cmock/src -I ./build/test/mocks ${INCLUDE_PATH}
+
+./build/test/test_AdcHardware: ./build/test/obj/test_AdcHardware.o ./build/test/obj/runner_test_AdcHardware.o ./build/test/obj/AdcHardware.o ./build/test/mocks/mock_AdcHardwareConfigurator.o ./build/test/mocks/mock_AdcTemperatureSensor.o  ./build/test/obj/unity.o ./build/test/obj/cmock.o
+	${CC} -o $@ ${LDFLAGS} ./build/test/obj/test_AdcHardware.o ./build/test/obj/runner_test_AdcHardware.o ./build/test/obj/AdcHardware.o ./build/test/mocks/mock_AdcHardwareConfigurator.o ./build/test/mocks/mock_AdcTemperatureSensor.o  ./build/test/obj/unity.o ./build/test/obj/cmock.o
+
+./build/test/test_AdcHardware.testresult: ./build/test/test_AdcHardware
+	-./build/test/test_AdcHardware > ./build/test/test_AdcHardware.testresult 2>&1
+
+./build/test/mocks/mock_AdcHardwareConfigurator.c: ./src/AdcHardwareConfigurator.h
+	@CMOCK_DIR=${CMOCK_DIR} ruby ${CMOCK_DIR}/scripts/create_mock.rb ./src/AdcHardwareConfigurator.h
+
+./build/test/mocks/mock_AdcHardwareConfigurator.o: ./build/test/mocks/mock_AdcHardwareConfigurator.c ./build/test/mocks/mock_AdcHardwareConfigurator.h
+	${CC} -o $@ -c $< ${TEST_CFLAGS} -I ./build/test/mocks -I ./src -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src -I C:/Users/grzeg/Desktop/Software_tools/cmock/src ${INCLUDE_PATH}
+
+./build/test/mocks/mock_AdcTemperatureSensor.c: ./src/AdcTemperatureSensor.h
+	@CMOCK_DIR=${CMOCK_DIR} ruby ${CMOCK_DIR}/scripts/create_mock.rb ./src/AdcTemperatureSensor.h
+
+./build/test/mocks/mock_AdcTemperatureSensor.o: ./build/test/mocks/mock_AdcTemperatureSensor.c ./build/test/mocks/mock_AdcTemperatureSensor.h
+	${CC} -o $@ -c $< ${TEST_CFLAGS} -I ./build/test/mocks -I ./src -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src -I C:/Users/grzeg/Desktop/Software_tools/cmock/src ${INCLUDE_PATH}
+
+test_summary:
+	@UNITY_DIR=${UNITY_DIR} ruby ${CMOCK_DIR}/scripts/test_summary.rb --silent
+
+.PHONY: test_summary
+
+test: ./build/test/test_AdcHardware.testresult test_summary
+

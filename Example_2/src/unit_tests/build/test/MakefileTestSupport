@@ -1,0 +1,73 @@
+CC ?= gcc
+BUILD_DIR = ./build
+SRC_DIR = ./src
+TEST_DIR = ./test
+TEST_CFLAGS ?= -DUNIT_TESTS
+CMOCK_DIR ?= C:/Users/grzeg/Desktop/Software_tools/cmock
+UNITY_DIR ?= C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity
+TEST_BUILD_DIR ?= ${BUILD_DIR}/test
+TEST_MAKEFILE = ${TEST_BUILD_DIR}/MakefileTestSupport
+OBJ ?= ${BUILD_DIR}/obj
+OBJ_DIR = ${OBJ}
+
+./build/test/obj/unity.o: C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src/unity.c
+	${CC} -o $@ -c $< -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src
+
+./build/test/obj/cmock.o: C:/Users/grzeg/Desktop/Software_tools/cmock/src/cmock.c
+	${CC} -o $@ -c $< -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src -I C:/Users/grzeg/Desktop/Software_tools/cmock/src
+
+./build/test/obj/GasMixer.o: ./src/GasMixer.c
+	${CC} -o $@ -c $< ${TEST_CFLAGS} -I ${SRC_DIR} ${INCLUDE_PATH}
+
+./build/test/runners/runner_test_GasMixer.c: ./test/test_GasMixer.c
+	@UNITY_DIR=${UNITY_DIR} ruby ${CMOCK_DIR}/scripts/create_runner.rb ./test/test_GasMixer.c ./build/test/runners/runner_test_GasMixer.c
+
+./build/test/obj/runner_test_GasMixer.o: ./build/test/runners/runner_test_GasMixer.c
+	${CC} -o $@ -c $< ${TEST_CFLAGS} -I ./src -I ./build/test/mocks -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src -I C:/Users/grzeg/Desktop/Software_tools/cmock/src ${INCLUDE_PATH}
+
+./build/test/obj/test_GasMixer.o: ./test/test_GasMixer.c ./build/test/obj/GasMixer.o ./build/test/mocks/mock_iO2Sensor.o ./build/test/mocks/mock_AcmeO2Adapter.o ./build/test/mocks/mock_UltimateO2Adapter.o ./build/test/mocks/mock_AcmeO2SensorProxy.o ./build/test/mocks/mock_UltimateO2SensorProxy.o
+	${CC} -o $@ -c $< ${TEST_CFLAGS} -I ./src -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src -I C:/Users/grzeg/Desktop/Software_tools/cmock/src -I ./build/test/mocks ${INCLUDE_PATH}
+
+./build/test/test_GasMixer: ./build/test/obj/test_GasMixer.o ./build/test/obj/runner_test_GasMixer.o ./build/test/obj/GasMixer.o ./build/test/mocks/mock_iO2Sensor.o ./build/test/mocks/mock_AcmeO2Adapter.o ./build/test/mocks/mock_UltimateO2Adapter.o ./build/test/mocks/mock_AcmeO2SensorProxy.o ./build/test/mocks/mock_UltimateO2SensorProxy.o  ./build/test/obj/unity.o ./build/test/obj/cmock.o
+	${CC} -o $@ ${LDFLAGS} ./build/test/obj/test_GasMixer.o ./build/test/obj/runner_test_GasMixer.o ./build/test/obj/GasMixer.o ./build/test/mocks/mock_iO2Sensor.o ./build/test/mocks/mock_AcmeO2Adapter.o ./build/test/mocks/mock_UltimateO2Adapter.o ./build/test/mocks/mock_AcmeO2SensorProxy.o ./build/test/mocks/mock_UltimateO2SensorProxy.o  ./build/test/obj/unity.o ./build/test/obj/cmock.o
+
+./build/test/test_GasMixer.testresult: ./build/test/test_GasMixer
+	-./build/test/test_GasMixer > ./build/test/test_GasMixer.testresult 2>&1
+
+./build/test/mocks/mock_iO2Sensor.c: ./src/iO2Sensor.h
+	@CMOCK_DIR=${CMOCK_DIR} ruby ${CMOCK_DIR}/scripts/create_mock.rb ./src/iO2Sensor.h
+
+./build/test/mocks/mock_iO2Sensor.o: ./build/test/mocks/mock_iO2Sensor.c ./build/test/mocks/mock_iO2Sensor.h
+	${CC} -o $@ -c $< ${TEST_CFLAGS} -I ./build/test/mocks -I ./src -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src -I C:/Users/grzeg/Desktop/Software_tools/cmock/src ${INCLUDE_PATH}
+
+./build/test/mocks/mock_AcmeO2Adapter.c: ./src/AcmeO2Adapter.h
+	@CMOCK_DIR=${CMOCK_DIR} ruby ${CMOCK_DIR}/scripts/create_mock.rb ./src/AcmeO2Adapter.h
+
+./build/test/mocks/mock_AcmeO2Adapter.o: ./build/test/mocks/mock_AcmeO2Adapter.c ./build/test/mocks/mock_AcmeO2Adapter.h
+	${CC} -o $@ -c $< ${TEST_CFLAGS} -I ./build/test/mocks -I ./src -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src -I C:/Users/grzeg/Desktop/Software_tools/cmock/src ${INCLUDE_PATH}
+
+./build/test/mocks/mock_UltimateO2Adapter.c: ./src/UltimateO2Adapter.h
+	@CMOCK_DIR=${CMOCK_DIR} ruby ${CMOCK_DIR}/scripts/create_mock.rb ./src/UltimateO2Adapter.h
+
+./build/test/mocks/mock_UltimateO2Adapter.o: ./build/test/mocks/mock_UltimateO2Adapter.c ./build/test/mocks/mock_UltimateO2Adapter.h
+	${CC} -o $@ -c $< ${TEST_CFLAGS} -I ./build/test/mocks -I ./src -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src -I C:/Users/grzeg/Desktop/Software_tools/cmock/src ${INCLUDE_PATH}
+
+./build/test/mocks/mock_AcmeO2SensorProxy.c: ./src/AcmeO2SensorProxy.h
+	@CMOCK_DIR=${CMOCK_DIR} ruby ${CMOCK_DIR}/scripts/create_mock.rb ./src/AcmeO2SensorProxy.h
+
+./build/test/mocks/mock_AcmeO2SensorProxy.o: ./build/test/mocks/mock_AcmeO2SensorProxy.c ./build/test/mocks/mock_AcmeO2SensorProxy.h
+	${CC} -o $@ -c $< ${TEST_CFLAGS} -I ./build/test/mocks -I ./src -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src -I C:/Users/grzeg/Desktop/Software_tools/cmock/src ${INCLUDE_PATH}
+
+./build/test/mocks/mock_UltimateO2SensorProxy.c: ./src/UltimateO2SensorProxy.h
+	@CMOCK_DIR=${CMOCK_DIR} ruby ${CMOCK_DIR}/scripts/create_mock.rb ./src/UltimateO2SensorProxy.h
+
+./build/test/mocks/mock_UltimateO2SensorProxy.o: ./build/test/mocks/mock_UltimateO2SensorProxy.c ./build/test/mocks/mock_UltimateO2SensorProxy.h
+	${CC} -o $@ -c $< ${TEST_CFLAGS} -I ./build/test/mocks -I ./src -I C:/Users/grzeg/Desktop/Software_tools/cmock/vendor/unity/src -I C:/Users/grzeg/Desktop/Software_tools/cmock/src ${INCLUDE_PATH}
+
+test_summary:
+	@UNITY_DIR=${UNITY_DIR} ruby ${CMOCK_DIR}/scripts/test_summary.rb --silent
+
+.PHONY: test_summary
+
+test: ./build/test/test_GasMixer.testresult test_summary
+
